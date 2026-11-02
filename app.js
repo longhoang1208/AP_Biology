@@ -112,7 +112,8 @@ const Z=[
     }
 ];
 
-const $=i=>document.getElementById(i);let z,x,y,T,done,score,tries;
+const $=i=>document.getElementById(i);
+let z,x,y,T,done,score,tries;
 
 function open(h){
     $('mb').innerHTML=h;
@@ -121,9 +122,13 @@ function open(h){
     if(b)b.focus();
 }
 
-function shut(){$('ov').hidden=true;draw()}
+function shut(){
+    $('ov').hidden=true;
+    draw()
+}
+
 function load(){
-    let a=0,b=0;
+    let a=0, b=0;
     done=new Set();
     T=L.map(
         (r,j)=>[...r].map(
@@ -144,7 +149,8 @@ function cnt(){
 }
 
 function draw(){
-    const[a,b,c,d]=cnt(),all=a==b&&c==d;$('zt').textContent=Z[z].n;$('sc').textContent='⭐ '+score;
+    const[a,b,c,d]=cnt(), all = a == b && c == d;
+    $('zt').textContent=Z[z].n;$('sc').textContent='⭐ '+score;
     document.documentElement.style.setProperty(
         '--zc',
         [
