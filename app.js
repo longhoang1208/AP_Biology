@@ -255,6 +255,16 @@ function ask(t,k){
     })
 }
 
+function review(t){
+    const d=Z[z];
+    if(t.c=='I'){
+        open(`<h3>💡 Theory #${t.n}</h3><p>${d.i[t.k]}</p><button class="btn" onclick="shut()">Close</button>`);
+    }else{
+        const q=d.q[t.k];
+        open(`<h3>❓ Quiz #${t.n} (review)</h3><p>${q[0]}</p>${q[1].map((o,n)=>`<button class="opt ${n==q[2]?'ok':''}" disabled>${o}</button>`).join('')}<p>✅ ${q[3]}</p><button class="btn" onclick="shut()">Close</button>`);
+    }
+}
+
 function end(){
     const r=score>=90?'🏆 Calvin Cycle Master':score>=60?'🥈 Great Biologist':'🥉 Keep Practicing';
     open(`<div class="big">🍬</div><h3>You became sugar!</h3><p>Three CO₂ + 9 ATP + 6 NADPH → <b>1 G3P</b>, ready to build glucose.</p><p>Score: <b>${score}/100</b><br>${r}</p><button class="btn" onclick="begin()">Play again</button>`)
@@ -279,6 +289,9 @@ document.querySelectorAll('#dp button').forEach(b=>b.onclick=()=>mv(...b.dataset
 $('board').onclick=e=>{
     const t=e.target.closest('.t');
     if(!t)return;
+    // Clicking a finished theory/quiz tile reopens it for review
+    const tl=T[+t.dataset.j][+t.dataset.i];
+    if($('ov').hidden&&(tl.c=='I'||tl.c=='Q')&&done.has(tl.i+','+tl.j)){review(tl);return}
     const dx=+t.dataset.i-x,dy=+t.dataset.j-y;
     if(Math.abs(dx)+Math.abs(dy)==1)mv(dx,dy);
     else if(!dx&&!dy)step(T[y][x])
