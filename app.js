@@ -1,4 +1,12 @@
-const L=["SI#QE","#III#","#Q###"];
+// One layout per section (S=start, I=theory, Q=quiz, E=exit, #=wall).
+// Each path runs: theory tiles first, then quiz tiles, then the exit - no backtracking.
+const LAYOUTS=[
+    ["SIII#","###I#","#EQQ#"],
+    ["SII##","##I#E","##IQQ"],
+    ["S##E#","I#QQ#","III##"],
+    ["IIS##","I####","IQQE#"],
+    ["SIIII","####Q","###EQ"]
+];
 const Z=[
     {
         n:"1 · Enter the chloroplast",
@@ -127,20 +135,30 @@ function shut(){
 }
 
 function load(){
-    let a=0, b=0;
-    const NI=(L.join('').match(/I/g)||[]).length; // number of theory tiles
-    done=new Set();
-    T=L.map(
-        (r,j)=>[...r].map(
-            (c,i)=>{
-                if(c=='S'){
-                    x=i;
-                    y=j
-                }const k=c=='I'?a++:c=='Q'?b++:0;
-                return{c,i,j,k,n:c=='I'?k+1:c=='Q'?NI+k+1:0} // n = order number: theory first, then quiz
+    const g=LAYOUTS[z];
+    let sx=0,sy=0;
+    g.forEach((r,j)=>[...r].forEach((c,i)=>{if(c=='S'){sx=i;sy=j}}));
+    // BFS from the start: distance along the path decides the numbering
+    const D={},q=[[sx,sy]];
+    D[sx+','+sy]=0;
+    while(q.length){
+        const[cx,cy]=q.shift();
+        [[1,0],[-1,0],[0,1],[0,-1]].forEach(([dx,dy])=>{
+            const nx=cx+dx,ny=cy+dy;
+            if(g[ny]&&g[ny][nx]&&g[ny][nx]!='#'&&D[nx+','+ny]===undefined){
+                D[nx+','+ny]=D[cx+','+cy]+1;
+                q.push([nx,ny])
             }
-        )
-    );
+        })
+    }
+    done=new Set();
+    x=sx;
+    y=sy;
+    T=g.map((r,j)=>[...r].map((c,i)=>({c,i,j,d:D[i+','+j]})));
+    const f=ch=>T.flat().filter(t=>t.c==ch).sort((a,b)=>a.d-b.d);
+    const I=f('I'),Q=f('Q');
+    I.forEach((t,k)=>{t.k=k;t.n=k+1});             // theory: 1..4
+    Q.forEach((t,k)=>{t.k=k;t.n=I.length+k+1});    // quiz: 5..6
     draw();
 }
 
