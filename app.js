@@ -1,4 +1,3 @@
-
 const L=["SI#QE","#III#","#Q###"];
 const Z=[
     {
@@ -129,6 +128,7 @@ function shut(){
 
 function load(){
     let a=0, b=0;
+    const NI=(L.join('').match(/I/g)||[]).length; // number of theory tiles
     done=new Set();
     T=L.map(
         (r,j)=>[...r].map(
@@ -136,7 +136,8 @@ function load(){
                 if(c=='S'){
                     x=i;
                     y=j
-                }return{c,i,j,k:c=='I'?a++:c=='Q'?b++:0}
+                }const k=c=='I'?a++:c=='Q'?b++:0;
+                return{c,i,j,k,n:c=='I'?k+1:c=='Q'?NI+k+1:0} // n = order number: theory first, then quiz
             }
         )
     );
@@ -150,6 +151,7 @@ function cnt(){
 
 function draw(){
     const[a,b,c,d]=cnt(), all = a == b && c == d;
+    const nxt=Math.min(...T.flat().filter(t=>t.n&&!done.has(t.i+','+t.j)).map(t=>t.n));
     $('zt').textContent=Z[z].n;$('sc').textContent='⭐ '+score;
     document.documentElement.style.setProperty(
         '--zc',
@@ -162,12 +164,12 @@ function draw(){
         ][z]
     );
     $('steps').innerHTML=Z.map((q,i)=>`<span class="${i==z?'on':i<z?'ok':''}">${q.n.slice(4)}</span>`).join('');
-    $('hud').textContent=`💡 ${a}/${b}   ❓ ${c}/${d}`+(all?'   🚪 Exit unlocked!':'');
+    $('hud').textContent=`💡 ${a}/${b}   ❓ ${c}/${d}`+(all?'   🚪 Exit unlocked!':'   ➜ Next: #'+nxt);
     $('board').innerHTML=T.flat().map(
         t=>{
             const dn=done.has(t.i+','+t.j);
             const ic={I:'💡',Q:'❓',E:all?'🚪':'🔒',S:'🌱'}[t.c]||'';
-            return`<div class="t ${t.c=='#'?'w':t.c} ${dn?'d':''}" data-i="${t.i}" data-j="${t.j}">${x==t.i&&y==t.j?'<div class="me">CO₂</div>':ic}</div>`
+            return`<div class="t ${t.c=='#'?'w':t.c} ${dn?'d':''} ${t.n===nxt?'nx':''}" data-i="${t.i}" data-j="${t.j}">${t.n?'<b class="no">'+t.n+'</b>':''}${x==t.i&&y==t.j?'<div class="me">CO₂</div>':ic}</div>`
         }
     ).join('')
 }
@@ -184,6 +186,13 @@ function mv(dx,dy){
 
 function step(t){
     const k=t.i+','+t.j,d=Z[z];
+    if((t.c=='I'||t.c=='Q')&&!done.has(k)){
+        const p=T.flat().find(u=>u.n&&u.n<t.n&&!done.has(u.i+','+u.j));
+        if(p){
+            open(`<h3>🔢 Follow the order</h3><p>Finish tile <b>${p.n}</b> first. Theory 💡 always comes before quizzes ❓.</p><button class="btn" onclick="shut()">OK</button>`);
+            return
+        }
+    }
     if(t.c=='I'&&!done.has(k)){
         done.add(k);
         draw();
